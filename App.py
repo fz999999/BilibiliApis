@@ -86,6 +86,43 @@ def video_info(data: dict):
         return {"code": 400, "message": str(e), "data": None}
 
 
+@app.post("/video_tags")
+def video_tags(data: dict):
+    try:
+        success, msg, result = apis.get_video_tags(
+            data.get("bvid"), data.get("aid"), data.get("cookies_str", "")
+        )
+        return {"code": 200 if success else 400, "message": msg, "data": result if success else None}
+    except Exception as e:
+        return {"code": 400, "message": str(e), "data": None}
+
+
+@app.post("/related_videos")
+def related_videos(data: dict):
+    try:
+        success, msg, result = apis.get_related_videos(
+            data.get("bvid"), data.get("aid"), data.get("cookies_str", "")
+        )
+        return {"code": 200 if success else 400, "message": msg, "data": result if success else None}
+    except Exception as e:
+        return {"code": 400, "message": str(e), "data": None}
+
+
+@app.post("/video_comments")
+def video_comments(data: dict):
+    try:
+        success, msg, result = apis.get_video_comments(
+            data.get("oid"),
+            data.get("page", 1),
+            data.get("page_size", 20),
+            data.get("sort", 2),
+            data.get("cookies_str", ""),
+        )
+        return {"code": 200 if success else 400, "message": msg, "data": result if success else None}
+    except Exception as e:
+        return {"code": 400, "message": str(e), "data": None}
+
+
 @app.post("/get_followings")
 def get_followings(data: dict):
     """Return all visible followings for the logged-in Bilibili account."""

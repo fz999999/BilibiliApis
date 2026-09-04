@@ -210,6 +210,74 @@ curl -X POST http://localhost:5008/popular_videos \\
 {"bvid": "BV1FQtt6JEKs"}
 ```
 
+### POST `/video_tags`
+
+根据 `bvid` 或 `aid` 获取视频标签。`bvid` 和 `aid` 至少提供一个。
+
+**请求参数**
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| bvid | str | 否 | 视频 BV 号，与 `aid` 至少提供一个 |
+| aid | int/str | 否 | 视频 AV 号，与 `bvid` 至少提供一个 |
+| cookies_str | str | 否 | B 站 Cookie，公开标签数据通常可不填 |
+
+**请求示例**
+
+```bash
+curl -X POST http://localhost:5008/video_tags \\
+  -H "Content-Type: application/json" \\
+  -d '{"bvid": "BV1FQtt6JEKs"}'
+```
+
+响应 `data` 为标签列表，元素包含 `tag_id`、`tag_name`、`content`、`count` 等 B 站返回字段。
+
+### POST `/related_videos`
+
+根据 `bvid` 或 `aid` 获取相关推荐视频。`bvid` 和 `aid` 至少提供一个。
+
+**请求参数**
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| bvid | str | 否 | 视频 BV 号，与 `aid` 至少提供一个 |
+| aid | int/str | 否 | 视频 AV 号，与 `bvid` 至少提供一个 |
+| cookies_str | str | 否 | B 站 Cookie，公开相关推荐数据通常可不填 |
+
+**请求示例**
+
+```bash
+curl -X POST http://localhost:5008/related_videos \\
+  -H "Content-Type: application/json" \\
+  -d '{"aid": 117188904097655}'
+```
+
+响应 `data` 为相关推荐视频列表，元素包含 `aid`、`bvid`、`title`、`owner`、`stat` 等 B 站返回字段。
+
+### POST `/video_comments`
+
+获取视频评论分页数据。`oid` 为视频 AV 号。
+
+**请求参数**
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| oid | int/str | 是 | 视频 AV 号 |
+| page | int | 否 | 页码，最小为 `1`，默认 `1` |
+| page_size | int | 否 | 每页评论数，范围 `1-20`，默认 `20` |
+| sort | int | 否 | 排序方式，允许值为 `1`、`2`、`3`、`4`、`5`，默认 `2` |
+| cookies_str | str | 否 | B 站 Cookie，公开评论数据通常可不填 |
+
+**请求示例**
+
+```bash
+curl -X POST http://localhost:5008/video_comments \\
+  -H "Content-Type: application/json" \\
+  -d '{"oid": 117188904097655, "page": 1, "page_size": 20, "sort": 2}'
+```
+
+响应 `data` 为 B 站评论分页对象，包含 `page`、`config`、`replies` 等字段；`replies` 为当前页评论列表。
+
 以上接口均为只读接口；`cookies_str` 为可选参数，传入时请勿将真实 Cookie 写入日志、代码仓库或公开 issue。
 
 ## 🍥 日志

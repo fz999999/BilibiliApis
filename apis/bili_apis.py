@@ -163,6 +163,106 @@ class BiliApis():
         except Exception as e:
             return False, str(e), None
 
+    def get_video_tags(self, bvid=None, aid=None, cookies_str=""):
+        """Get tags attached to a video by bvid or aid."""
+        try:
+            if bvid is None and aid is None:
+                return False, "bvid 和 aid 至少提供一个", None
+            if bvid is not None and not str(bvid).strip():
+                return False, "bvid 不能为空", None
+            if aid is not None and (not str(aid).isdigit() or int(aid) <= 0):
+                return False, "请提供有效的 aid", None
+
+            params = {"bvid": str(bvid).strip()} if bvid is not None else {"aid": str(aid)}
+            response = requests.get(
+                "https://api.bilibili.com/x/tag/archive/tags",
+                params=params,
+                cookies=trans_cookies(cookies_str),
+                headers=get_common_headers(),
+                timeout=30,
+            )
+            response.raise_for_status()
+            res_json = response.json()
+            if res_json.get("code") != 0:
+                return False, res_json.get("message", "获取视频标签失败"), None
+            return True, "成功", res_json.get("data") or []
+        except (ValueError, TypeError) as e:
+            return False, f"参数错误: {e}", None
+        except requests.RequestException as e:
+            return False, f"请求 B 站接口失败: {e}", None
+        except Exception as e:
+            return False, str(e), None
+
+    def get_related_videos(self, bvid=None, aid=None, cookies_str=""):
+        """Get videos related to a video by bvid or aid."""
+        try:
+            if bvid is None and aid is None:
+                return False, "bvid 和 aid 至少提供一个", None
+            if bvid is not None and not str(bvid).strip():
+                return False, "bvid 不能为空", None
+            if aid is not None and (not str(aid).isdigit() or int(aid) <= 0):
+                return False, "请提供有效的 aid", None
+
+            params = {"bvid": str(bvid).strip()} if bvid is not None else {"aid": str(aid)}
+            response = requests.get(
+                "https://api.bilibili.com/x/web-interface/archive/related",
+                params=params,
+                cookies=trans_cookies(cookies_str),
+                headers=get_common_headers(),
+                timeout=30,
+            )
+            response.raise_for_status()
+            res_json = response.json()
+            if res_json.get("code") != 0:
+                return False, res_json.get("message", "获取相关推荐失败"), None
+            return True, "成功", res_json.get("data") or []
+        except (ValueError, TypeError) as e:
+            return False, f"参数错误: {e}", None
+        except requests.RequestException as e:
+            return False, f"请求 B 站接口失败: {e}", None
+        except Exception as e:
+            return False, str(e), None
+
+    def get_video_comments(self, oid, page=1, page_size=20, sort=2, cookies_str=""):
+        """Get a page of comments for a video (type=1)."""
+        try:
+            if oid is None or not str(oid).isdigit() or int(oid) <= 0:
+                return False, "请提供有效的 oid（视频 aid）", None
+            page = int(page)
+            page_size = int(page_size)
+            sort = int(sort)
+            if page < 1:
+                return False, "page 必须大于等于 1", None
+            if page_size < 1 or page_size > 20:
+                return False, "page_size 必须在 1 到 20 之间", None
+            if sort not in (1, 2, 3, 4, 5):
+                return False, "sort 参数不合法", None
+
+            response = requests.get(
+                "https://api.bilibili.com/x/v2/reply",
+                params={
+                    "oid": str(oid),
+                    "type": 1,
+                    "pn": page,
+                    "ps": page_size,
+                    "sort": sort,
+                },
+                cookies=trans_cookies(cookies_str),
+                headers=get_common_headers(),
+                timeout=30,
+            )
+            response.raise_for_status()
+            res_json = response.json()
+            if res_json.get("code") != 0:
+                return False, res_json.get("message", "获取视频评论失败"), None
+            return True, "成功", res_json.get("data") or {}
+        except (ValueError, TypeError) as e:
+            return False, f"参数错误: {e}", None
+        except requests.RequestException as e:
+            return False, f"请求 B 站接口失败: {e}", None
+        except Exception as e:
+            return False, str(e), None
+
     def get_video_info(self, bvid=None, aid=None, cookies_str=""):
         """Get video details by bvid or aid."""
         try:
