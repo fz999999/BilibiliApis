@@ -278,6 +278,65 @@ curl -X POST http://localhost:5008/video_comments \\
 
 响应 `data` 为 B 站评论分页对象，包含 `page`、`config`、`replies` 等字段；`replies` 为当前页评论列表。
 
+### POST `/video_pages`
+
+获取视频分 P 列表，包括每个分 P 的 `cid`、标题、时长、分辨率和首帧地址。`bvid` 和 `aid` 至少提供一个。
+
+**请求参数**
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| bvid | str | 否 | 视频 BV 号，与 `aid` 至少提供一个 |
+| aid | int/str | 否 | 视频 AV 号，与 `bvid` 至少提供一个 |
+| cookies_str | str | 否 | B 站 Cookie |
+
+**请求示例**
+
+```bash
+curl -X POST http://localhost:5008/video_pages \\
+  -H "Content-Type: application/json" \\
+  -d '{"bvid": "BV1FQtt6JEKs"}'
+```
+
+响应 `data` 为分 P 数组，元素包含 `cid`、`page`、`part`、`duration`、`dimension` 等字段。
+
+### POST `/video_detail`
+
+获取扩展视频详情，返回内容比 `/video_info` 更完整，包含视频主体、作者卡片、标签、相关推荐和评论摘要等模块。`bvid` 和 `aid` 至少提供一个。
+
+**请求示例**
+
+```bash
+curl -X POST http://localhost:5008/video_detail \\
+  -H "Content-Type: application/json" \\
+  -d '{"bvid": "BV1FQtt6JEKs"}'
+```
+
+响应 `data` 为包含 `View`、`Card`、`Tags`、`Related`、`Reply` 等字段的扩展详情对象。
+
+### POST `/player_info`
+
+获取指定视频分 P 的播放器状态和播放元数据。需要同时提供视频标识和该分 P 的 `cid`；`cid` 可从 `/video_pages` 返回结果中获取。
+
+**请求参数**
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| bvid | str | 否 | 视频 BV 号，与 `aid` 至少提供一个 |
+| aid | int/str | 否 | 视频 AV 号，与 `bvid` 至少提供一个 |
+| cid | int/str | 是 | 视频分 P 的内容 ID |
+| cookies_str | str | 否 | B 站 Cookie |
+
+**请求示例**
+
+```bash
+curl -X POST http://localhost:5008/player_info \\
+  -H "Content-Type: application/json" \\
+  -d '{"bvid": "BV1FQtt6JEKs", "cid": 41456634761}'
+```
+
+响应 `data` 包含 `aid`、`bvid`、`cid`、`page_no`、`has_next`、`ip_info` 等播放器相关字段。
+
 以上接口均为只读接口；`cookies_str` 为可选参数，传入时请勿将真实 Cookie 写入日志、代码仓库或公开 issue。
 
 ## 🍥 日志

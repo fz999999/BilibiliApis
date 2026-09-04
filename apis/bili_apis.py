@@ -298,6 +298,102 @@ class BiliApis():
         except Exception as e:
             return False, str(e), None
 
+    def get_video_pages(self, bvid=None, aid=None, cookies_str=""):
+        """Get paged parts of a video by bvid or aid."""
+        try:
+            if bvid is None and aid is None:
+                return False, "bvid 和 aid 至少提供一个", None
+            if bvid is not None and not str(bvid).strip():
+                return False, "bvid 不能为空", None
+            if aid is not None and (not str(aid).isdigit() or int(aid) <= 0):
+                return False, "请提供有效的 aid", None
+
+            params = {"bvid": str(bvid).strip()} if bvid is not None else {"aid": str(aid)}
+            response = requests.get(
+                "https://api.bilibili.com/x/player/pagelist",
+                params=params,
+                cookies=trans_cookies(cookies_str),
+                headers=get_common_headers(),
+                timeout=30,
+            )
+            response.raise_for_status()
+            res_json = response.json()
+            if res_json.get("code") != 0:
+                return False, res_json.get("message", "获取视频分 P 失败"), None
+            return True, "成功", res_json.get("data") or []
+        except (ValueError, TypeError) as e:
+            return False, f"参数错误: {e}", None
+        except requests.RequestException as e:
+            return False, f"请求 B 站接口失败: {e}", None
+        except Exception as e:
+            return False, str(e), None
+
+    def get_video_detail(self, bvid=None, aid=None, cookies_str=""):
+        """Get extended video detail data by bvid or aid."""
+        try:
+            if bvid is None and aid is None:
+                return False, "bvid 和 aid 至少提供一个", None
+            if bvid is not None and not str(bvid).strip():
+                return False, "bvid 不能为空", None
+            if aid is not None and (not str(aid).isdigit() or int(aid) <= 0):
+                return False, "请提供有效的 aid", None
+
+            params = {"bvid": str(bvid).strip()} if bvid is not None else {"aid": str(aid)}
+            response = requests.get(
+                "https://api.bilibili.com/x/web-interface/view/detail",
+                params=params,
+                cookies=trans_cookies(cookies_str),
+                headers=get_common_headers(),
+                timeout=30,
+            )
+            response.raise_for_status()
+            res_json = response.json()
+            if res_json.get("code") != 0:
+                return False, res_json.get("message", "获取扩展视频详情失败"), None
+            return True, "成功", res_json.get("data") or {}
+        except (ValueError, TypeError) as e:
+            return False, f"参数错误: {e}", None
+        except requests.RequestException as e:
+            return False, f"请求 B 站接口失败: {e}", None
+        except Exception as e:
+            return False, str(e), None
+
+    def get_player_info(self, bvid=None, aid=None, cid=None, cookies_str=""):
+        """Get player state and playback metadata for a video part."""
+        try:
+            if bvid is None and aid is None:
+                return False, "bvid 和 aid 至少提供一个", None
+            if bvid is not None and not str(bvid).strip():
+                return False, "bvid 不能为空", None
+            if aid is not None and (not str(aid).isdigit() or int(aid) <= 0):
+                return False, "请提供有效的 aid", None
+            if cid is None or not str(cid).isdigit() or int(cid) <= 0:
+                return False, "请提供有效的 cid", None
+
+            params = {"cid": str(cid)}
+            if bvid is not None:
+                params["bvid"] = str(bvid).strip()
+            else:
+                params["aid"] = str(aid)
+            response = requests.get(
+                "https://api.bilibili.com/x/player/v2",
+                params=params,
+                cookies=trans_cookies(cookies_str),
+                headers=get_common_headers(),
+                timeout=30,
+            )
+            response.raise_for_status()
+            res_json = response.json()
+            if res_json.get("code") != 0:
+                return False, res_json.get("message", "获取播放器信息失败"), None
+            return True, "成功", res_json.get("data") or {}
+        except (ValueError, TypeError) as e:
+            return False, f"参数错误: {e}", None
+        except requests.RequestException as e:
+            return False, f"请求 B 站接口失败: {e}", None
+        except Exception as e:
+            return False, str(e), None
+
     def get_followings(self, vmid, cookies_str, page_size=50):
         """Get the logged-in user's complete following list and space URLs."""
         success = True

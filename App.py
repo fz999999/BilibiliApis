@@ -86,6 +86,39 @@ def video_info(data: dict):
         return {"code": 400, "message": str(e), "data": None}
 
 
+@app.post("/video_pages")
+def video_pages(data: dict):
+    try:
+        success, msg, result = apis.get_video_pages(
+            data.get("bvid"), data.get("aid"), data.get("cookies_str", "")
+        )
+        return {"code": 200 if success else 400, "message": msg, "data": result if success else None}
+    except Exception as e:
+        return {"code": 400, "message": str(e), "data": None}
+
+
+@app.post("/video_detail")
+def video_detail(data: dict):
+    try:
+        success, msg, result = apis.get_video_detail(
+            data.get("bvid"), data.get("aid"), data.get("cookies_str", "")
+        )
+        return {"code": 200 if success else 400, "message": msg, "data": result if success else None}
+    except Exception as e:
+        return {"code": 400, "message": str(e), "data": None}
+
+
+@app.post("/player_info")
+def player_info(data: dict):
+    try:
+        success, msg, result = apis.get_player_info(
+            data.get("bvid"), data.get("aid"), data.get("cid"), data.get("cookies_str", "")
+        )
+        return {"code": 200 if success else 400, "message": msg, "data": result if success else None}
+    except Exception as e:
+        return {"code": 400, "message": str(e), "data": None}
+
+
 @app.post("/video_tags")
 def video_tags(data: dict):
     try:
