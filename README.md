@@ -158,6 +158,60 @@ curl -X POST http://localhost:5008/get_followings \\
 }
 ```
 
+### POST `/popular_videos`
+
+获取 B 站热门视频列表。
+
+**请求参数**
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| page | int | 否 | 页码，默认 `1` |
+| page_size | int | 否 | 每页数量，范围 `1-50`，默认 `20` |
+| cookies_str | str | 否 | B 站 Cookie，公开热门数据通常可不填 |
+
+**请求示例**
+
+```bash
+curl -X POST http://localhost:5008/popular_videos \\
+  -H "Content-Type: application/json" \\
+  -d '{"page": 1, "page_size": 20}'
+```
+
+### POST `/user_card`
+
+根据 `mid` 获取用户公开卡片信息，包括昵称、头像、签名、粉丝数和认证信息等。
+
+```json
+{"mid": 14804670}
+```
+
+### POST `/space_navnum`
+
+根据 `mid` 获取用户空间中视频、专栏、动态、收藏夹等内容数量。
+
+```json
+{"mid": 14804670}
+```
+
+### POST `/relation_stat`
+
+根据 `mid` 获取用户关注数、粉丝数及关系统计信息。
+
+```json
+{"mid": 14804670}
+```
+
+### POST `/video_info`
+
+根据 `bvid` 或 `aid` 获取视频详情。`bvid` 和 `aid` 至少提供一个。
+
+```json
+{"bvid": "BV1FQtt6JEKs"}
+```
+
+以上接口均为只读接口；`cookies_str` 为可选参数，传入时请勿将真实 Cookie 写入日志、代码仓库或公开 issue。
+
 ## 🍥 日志
 
 | 日期       | 说明                            |

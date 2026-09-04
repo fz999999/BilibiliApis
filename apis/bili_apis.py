@@ -59,6 +59,145 @@ class BiliApis():
             msg = str(e)
         return success, msg, work_list
 
+    def get_popular_videos(self, page=1, page_size=20, cookies_str=""):
+        """Get a page of popular videos."""
+        try:
+            page = int(page)
+            page_size = int(page_size)
+            if page < 1:
+                return False, "page 必须大于等于 1", None
+            if page_size < 1 or page_size > 50:
+                return False, "page_size 必须在 1 到 50 之间", None
+
+            response = requests.get(
+                "https://api.bilibili.com/x/web-interface/popular",
+                params={"pn": page, "ps": page_size},
+                cookies=trans_cookies(cookies_str),
+                headers=get_common_headers(),
+                timeout=30,
+            )
+            response.raise_for_status()
+            res_json = response.json()
+            if res_json.get("code") != 0:
+                return False, res_json.get("message", "获取热门视频失败"), None
+            return True, "成功", res_json.get("data") or {}
+        except (ValueError, TypeError) as e:
+            return False, f"参数错误: {e}", None
+        except requests.RequestException as e:
+            return False, f"请求 B 站接口失败: {e}", None
+        except Exception as e:
+            return False, str(e), None
+
+    def get_user_card(self, mid, cookies_str=""):
+        """Get a user's public card information."""
+        try:
+            if mid is None or not str(mid).isdigit() or int(mid) <= 0:
+                return False, "请提供有效的 mid", None
+
+            response = requests.get(
+                "https://api.bilibili.com/x/web-interface/card",
+                params={"mid": str(mid)},
+                cookies=trans_cookies(cookies_str),
+                headers=get_common_headers(),
+                timeout=30,
+            )
+            response.raise_for_status()
+            res_json = response.json()
+            if res_json.get("code") != 0:
+                return False, res_json.get("message", "获取用户卡片失败"), None
+            return True, "成功", res_json.get("data") or {}
+        except (ValueError, TypeError) as e:
+            return False, f"参数错误: {e}", None
+        except requests.RequestException as e:
+            return False, f"请求 B 站接口失败: {e}", None
+        except Exception as e:
+            return False, str(e), None
+
+    def get_space_navnum(self, mid, cookies_str=""):
+        """Get counts of content types in a user's space."""
+        try:
+            if mid is None or not str(mid).isdigit() or int(mid) <= 0:
+                return False, "请提供有效的 mid", None
+
+            response = requests.get(
+                "https://api.bilibili.com/x/space/navnum",
+                params={"mid": str(mid)},
+                cookies=trans_cookies(cookies_str),
+                headers=get_common_headers(),
+                timeout=30,
+            )
+            response.raise_for_status()
+            res_json = response.json()
+            if res_json.get("code") != 0:
+                return False, res_json.get("message", "获取空间数量失败"), None
+            return True, "成功", res_json.get("data") or {}
+        except (ValueError, TypeError) as e:
+            return False, f"参数错误: {e}", None
+        except requests.RequestException as e:
+            return False, f"请求 B 站接口失败: {e}", None
+        except Exception as e:
+            return False, str(e), None
+
+    def get_relation_stat(self, mid, cookies_str=""):
+        """Get a user's following and follower counts."""
+        try:
+            if mid is None or not str(mid).isdigit() or int(mid) <= 0:
+                return False, "请提供有效的 mid", None
+
+            response = requests.get(
+                "https://api.bilibili.com/x/relation/stat",
+                params={"vmid": str(mid)},
+                cookies=trans_cookies(cookies_str),
+                headers=get_common_headers(),
+                timeout=30,
+            )
+            response.raise_for_status()
+            res_json = response.json()
+            if res_json.get("code") != 0:
+                return False, res_json.get("message", "获取关系统计失败"), None
+            return True, "成功", res_json.get("data") or {}
+        except (ValueError, TypeError) as e:
+            return False, f"参数错误: {e}", None
+        except requests.RequestException as e:
+            return False, f"请求 B 站接口失败: {e}", None
+        except Exception as e:
+            return False, str(e), None
+
+    def get_video_info(self, bvid=None, aid=None, cookies_str=""):
+        """Get video details by bvid or aid."""
+        try:
+            if bvid is None and aid is None:
+                return False, "bvid 和 aid 至少提供一个", None
+            if bvid is not None and not str(bvid).strip():
+                return False, "bvid 不能为空", None
+            if aid is not None and (not str(aid).isdigit() or int(aid) <= 0):
+                return False, "请提供有效的 aid", None
+
+            params = {}
+            if bvid is not None:
+                params["bvid"] = str(bvid).strip()
+            else:
+                params["aid"] = str(aid)
+
+            response = requests.get(
+                "https://api.bilibili.com/x/web-interface/view",
+                params=params,
+                cookies=trans_cookies(cookies_str),
+                headers=get_common_headers(),
+                timeout=30,
+            )
+            response.raise_for_status()
+            res_json = response.json()
+            if res_json.get("code") != 0:
+                return False, res_json.get("message", "获取视频详情失败"), None
+            return True, "成功", res_json.get("data") or {}
+        except (ValueError, TypeError) as e:
+            return False, f"参数错误: {e}", None
+        except requests.RequestException as e:
+            return False, f"请求 B 站接口失败: {e}", None
+        except Exception as e:
+            return False, str(e), None
+
     def get_followings(self, vmid, cookies_str, page_size=50):
         """Get the logged-in user's complete following list and space URLs."""
         success = True

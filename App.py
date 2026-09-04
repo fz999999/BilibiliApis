@@ -37,6 +37,55 @@ def search_some_by_num(data: dict):
         return {"code": 400, "message": str(e), "data": None}
 
 
+@app.post("/popular_videos")
+def popular_videos(data: dict):
+    try:
+        success, msg, result = apis.get_popular_videos(
+            data.get("page", 1), data.get("page_size", 20), data.get("cookies_str", "")
+        )
+        return {"code": 200 if success else 400, "message": msg, "data": result if success else None}
+    except Exception as e:
+        return {"code": 400, "message": str(e), "data": None}
+
+
+@app.post("/user_card")
+def user_card(data: dict):
+    try:
+        success, msg, result = apis.get_user_card(data.get("mid"), data.get("cookies_str", ""))
+        return {"code": 200 if success else 400, "message": msg, "data": result if success else None}
+    except Exception as e:
+        return {"code": 400, "message": str(e), "data": None}
+
+
+@app.post("/space_navnum")
+def space_navnum(data: dict):
+    try:
+        success, msg, result = apis.get_space_navnum(data.get("mid"), data.get("cookies_str", ""))
+        return {"code": 200 if success else 400, "message": msg, "data": result if success else None}
+    except Exception as e:
+        return {"code": 400, "message": str(e), "data": None}
+
+
+@app.post("/relation_stat")
+def relation_stat(data: dict):
+    try:
+        success, msg, result = apis.get_relation_stat(data.get("mid"), data.get("cookies_str", ""))
+        return {"code": 200 if success else 400, "message": msg, "data": result if success else None}
+    except Exception as e:
+        return {"code": 400, "message": str(e), "data": None}
+
+
+@app.post("/video_info")
+def video_info(data: dict):
+    try:
+        success, msg, result = apis.get_video_info(
+            data.get("bvid"), data.get("aid"), data.get("cookies_str", "")
+        )
+        return {"code": 200 if success else 400, "message": msg, "data": result if success else None}
+    except Exception as e:
+        return {"code": 400, "message": str(e), "data": None}
+
+
 @app.post("/get_followings")
 def get_followings(data: dict):
     """Return all visible followings for the logged-in Bilibili account."""
