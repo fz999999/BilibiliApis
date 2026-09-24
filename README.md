@@ -33,7 +33,7 @@ BilibiliApis 把常用的 B站 Web 能力封装成 Python 接口：核心签名�
 - 🔍 **内容获取**
   - 关键词搜索与自动翻页
   - 视频详情、播放地址、评论与弹幕
-  - 用户资料、用户投稿、推荐与热门内容
+  - 用户资料、用户投稿、关注列表、推荐与热门内容
 - 🔐 **账号登录**
   - 二维码登录
   - 手机号短信登录
@@ -92,6 +92,7 @@ python main.py
 | `login` | 二维码登录并保存会话 | 是 |
 | `archives` | 查看自己的稿件 | 是 |
 | `types` | 查看投稿分区及 `tid` | 是 |
+| `followings` | 读取登录账号的关注列表 | 是 |
 
 搜索关键词、视频 BV 号、用户 UID、直播间号等参数，也都集中在 `main.py` 顶部。
 
@@ -196,6 +197,22 @@ auth = BiliAuth.from_session()
 print(auth.mid, auth.is_login)
 ```
 
+读取登录账号的关注列表：
+
+```python
+from apis.bili_apis import BiliApi
+from builder.auth import BiliAuth
+
+auth = BiliAuth.from_session()
+success, message, followings = BiliApi.get_followings(auth)
+
+if not success:
+    raise RuntimeError(message)
+
+for item in followings:
+    print(item["mid"], item["uname"], item["space_url"])
+```
+
 视频投稿：
 
 ```python
@@ -266,6 +283,7 @@ BilibiliApis/
 
 | 日期 | 说明 |
 |---|---|
+| 26/09/24 | 新增关注列表接口 `get_followings` 与 `followings` 示例 |
 | 26/09/13 | 完成极验 v3 纯算短信登录；验证视频私密投稿与回查链路 |
 | 26/08/16 | 完善 WBI、设备参数、会话续期、创作、互动与直播接口 |
 | 26/04/10 | 项目初始化，完成视频搜索接口封装 |

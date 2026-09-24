@@ -364,6 +364,80 @@ class BiliApi:
             success, msg = False, str(e)
         return success, msg, work_list
 
+    @staticmethod
+    def get_followings(auth, vmid: str = '', page_size: int = 50) -> tuple:
+        """翻页取完整关注列表，并为每个关注用户生成空间网址.
+
+        该接口读的是登录 Cookie 所属账号的关注关系：`vmid` 缺省取 Cookie 里的
+        ``DedeUserID``（即 auth.mid）。若 B 站返回的条数少于声明总数，会直接
+        报错，避免把不完整的列表误报为完整结果。
+
+        :param auth: BiliAuth object，需登录态（含 SESSDATA）.
+        :param vmid: 目标账号 mid，缺省用 auth.mid.
+        :param page_size: 每页条数，范围 1-50，默认 50.
+        :return: (success, msg, followings)，每项含 space_url.
+        """
+        success, msg, followings = True, '成功', []
+        try:
+            if not auth.is_login:
+                return False, 'Cookie 中缺少有效的 SESSDATA', []
+            if not vmid:
+                vmid = auth.mid
+            if not str(vmid).isdigit() or int(vmid) <= 0:
+                return False, '请提供有效的 vmid，或在 Cookie 中包含 DedeUserID', []
+            page_size = int(page_size)
+            if page_size < 1 or page_size > 50:
+                return False, 'page_size 必须在 1 到 50 之间', []
+
+            url = f'{BiliApi.api}/x/relation/followings'
+            page = 1
+            total = None
+            seen_mids = set()
+            max_pages = 100
+
+            while total is None or len(followings) < total:
+                if page > max_pages:
+                    return False, (
+                        f'关注列表超过接口安全分页上限，已获取 '
+                        f'{len(followings)}/{total} 条'), []
+                headers = HeaderBuilder.build(
+                    HeaderType.GET, HeaderBuilder.space_origin).set_referer(
+                    f'https://space.bilibili.com/{vmid}').get()
+                params = (Params({
+                    'vmid': str(vmid), 'pn': page, 'ps': page_size,
+                    'order_type': '',
+                }).with_dm_img())
+                res_json = get_json(auth, url, headers=headers, params=params.get())
+                if res_json.get('code') != 0:
+                    return False, res_json.get('message', '获取关注列表失败'), []
+
+                data = res_json.get('data') or {}
+                current_page = data.get('list') or []
+                total = int(data.get('total') or 0)
+
+                for item in current_page:
+                    mid = item.get('mid')
+                    if mid is None or str(mid) in seen_mids:
+                        continue
+                    seen_mids.add(str(mid))
+                    following = dict(item)
+                    following['space_url'] = f'https://space.bilibili.com/{mid}'
+                    followings.append(following)
+
+                if not current_page:
+                    if total > len(followings):
+                        return False, (
+                            f'B 站只返回了部分关注列表，已获取 '
+                            f'{len(followings)}/{total} 条'), []
+                    break
+                page += 1
+
+            return success, msg, followings
+        except (ValueError, TypeError) as e:
+            return False, f'参数错误: {e}', []
+        except Exception as e:
+            return False, str(e), []
+
     # ------------------------------------------------------------------ 推荐
 
     @staticmethod

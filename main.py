@@ -24,7 +24,7 @@ from utils.session import has_session
 
 
 # ============================== 用户配置 ============================== #
-# 选择一个 demo：view / search / user / live / danmaku / login / archives / types
+# 选择一个 demo：view / search / user / live / danmaku / login / archives / types / followings
 DEMO = "view"
 
 BVID = "BV1GJ411x7h7"       # view
@@ -34,6 +34,8 @@ SEARCH_ORDER = "totalrank"  # totalrank / click / pubdate / dm / stow
 USER_MID = os.getenv("BILIBILI_USER_MID", "2")  # user；可用环境变量覆盖
 ROOM_ID = "1"                # live / danmaku
 LISTEN_SECONDS = 30           # danmaku；0 表示一直监听
+FOLLOWING_MID = ""            # followings；留空则读取登录账号（DedeUserID）
+FOLLOWING_PAGE_SIZE = 50      # followings；每页条数 1-50
 
 QR_TIMEOUT = 180             # login 扫码最长等待秒数
 SHOW_QR = True               # 是否在终端绘制二维码
@@ -186,6 +188,18 @@ def demo_types() -> None:
             print(f"    tid={child.get('id'):<6} {child.get('name')}")
 
 
+def demo_followings() -> None:
+    auth = get_auth(require_login=True)
+    success, message, followings = BiliApi.get_followings(
+        auth, vmid=FOLLOWING_MID, page_size=FOLLOWING_PAGE_SIZE
+    )
+    if not success:
+        raise RuntimeError(message)
+    print(f"关注列表：共 {len(followings)} 条")
+    for item in followings:
+        print(f"  {item.get('mid')}  {item.get('uname')}  {item.get('space_url')}")
+
+
 DEMOS = {
     "view": demo_view,
     "search": demo_search,
@@ -195,6 +209,7 @@ DEMOS = {
     "login": demo_login,
     "archives": demo_archives,
     "types": demo_types,
+    "followings": demo_followings,
 }
 
 
