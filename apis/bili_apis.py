@@ -264,24 +264,26 @@ class BiliApi:
     # ------------------------------------------------------------------ 评论
 
     @staticmethod
-    def get_replies(auth, oid, type_: int = 1, page: int = 1, mode: int = 3) -> dict:
+    def get_replies(auth, oid, type_: int = 1, offset: str = '', mode: int = 3) -> dict:
         """取评论区.
 
         :param auth: BiliAuth object.
         :param oid: 目标 ID，视频传 av 号.
         :param type_: 评论区类型，1=视频 12=专栏 17=动态.
-        :param page: 页码.
+        :param offset: 翻页游标。首页传空串；下一页传上一页响应里的
+            data.cursor.pagination_reply.next_offset。旧的页码参数 next 服务端已经不认
+            （data.cursor.next 恒为 0），只靠它翻页会一直拿到首页。
+            热门排序时 next_offset 可能连续几页不变（进度记在服务端的 session 里），
+            照样把它传回去就是下一页，直到 data.cursor.is_end 为 true.
         :param mode: 排序，0/3=热门 2=时间.
         :return: JSON.
         """
         headers = HeaderBuilder.build(HeaderType.GET).set_referer(f'{BiliApi.main}/').get()
         params = Params({
-            'oid': oid, 'type': type_, 'mode': mode, 'pagination_str': '{"offset":""}',
+            'oid': oid, 'type': type_, 'mode': mode,
+            'pagination_str': json.dumps({'offset': offset}, separators=(',', ':')),
             'plat': 1, 'seek_rpid': '',
         })
-        # 首屏浏览器不带 next，翻页时才追加；跟着一起带会多出字段
-        if page > 1:
-            params.add_param('next', page)
         params.with_web_location('1315875').with_wbi(auth)
         return get_json(auth, f'{BiliApi.api}/x/v2/reply/wbi/main',
                         headers=headers, params=params.get())
